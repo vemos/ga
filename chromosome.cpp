@@ -1,3 +1,6 @@
+#ifndef CHROMOSOME_CPP
+#define CHROMOSOME_CPP
+
 #include <vector>
 
 using namespace std;
@@ -49,3 +52,4 @@ const T& Chromosome<T>::operator [](int index) const
     return _data[index];
 }
 
+#endif
