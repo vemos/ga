@@ -22,9 +22,18 @@ void population::generate(int size, int chr_size, create cr)
 
 void population::crossover(float pk, float p)
 {
+    if (_opt == nullptr)
+        throw runtime_error("Optimum function was not set!");
     int i;
     size_t size = _pop.size();
     vector<shared_ptr<chromosome>> vec;
+
+    for (shared_ptr<chromosome> &c : _pop)
+    {
+        c->set_opt(_opt(*c));
+    }
+
+
     for (i = 0; i < size; ++i)
         if (drand() < pk)
             vec.push_back(_pop[i]);
