@@ -1,55 +1,33 @@
-#include <vector>
-#include <iostream>
-#include <stdexcept>
-#include "chromosome.cpp"
-#include <memory>
+#include "population.h"
 
-using std::cout;
-using std::endl;
-using std::shared_ptr;
-using std::vector;
-
-typedef void* (*create)(int size);
-
-
-template<typename T, typename F>
-class population
-{
-public:
-    population();
-
-    void generate(int size, int chr_size, create cr);
-    void print()
-    {
-        cout << _pop.size() << endl;
-        for (shared_ptr<chromosome<T, F>> val : _pop) {
-            cout << *val << endl;
-        }
-    }
-
-private:
-    bool _is_gen;
-    vector< shared_ptr<chromosome<T, F>> > _pop;
-};
-
-
-template<typename T, typename F>
-population<T, F>::population()
+population::population()
 {
     _is_gen = false;
+    _opt = nullptr;
 }
 
-template<typename T, typename F>
-void population<T, F>::generate(int size, int chr_size, create cr)
+void population::generate(int size, int chr_size, create cr)
 {
-    chromosome<T, F>* chm;
+    chromosome* chm;
     if (size < 1)
-        throw new std::invalid_argument("Population size cann't be less then 1!");
+        throw std::invalid_argument("Population size cann't be less then 1!");
     _pop.clear();
     for (int i = 0; i < size; ++i)
     {
-        chm = (chromosome<T, F>*)cr(chr_size);
-        _pop.push_back(shared_ptr<chromosome<T, F>>(chm));
+        chm = (chromosome*)cr(chr_size);
+        _pop.push_back(shared_ptr<chromosome>(chm));
     }
     _is_gen = true;
+}
+
+void population::crossover(float pk, float p)
+{
+    int i;
+    size_t size = _pop.size();
+    vector<shared_ptr<chromosome>> vec;
+    for (i = 0; i < size; ++i)
+        if (drand() < pk)
+            vec.push_back(_pop[i]);
+
+    sort(_pop.begin(), _pop.end());
 }

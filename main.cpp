@@ -1,7 +1,7 @@
 #include <iostream>
 #include <time.h>
-#include "chromosome.cpp"
-#include "population.cpp"
+#include "chromosome.h"
+#include "population.h"
 
 using namespace std;
 
@@ -9,14 +9,17 @@ using namespace std;
 int main()
 {
     srand(time(nullptr));
-    population<char, double> p;
+    population p;
 
     p.generate(10, 10, [](int size) -> void* {
-        chromosome<char, double> *chm = new chromosome<char, double>(size);
+        static int a = 0;
+        chromosome *chm = new chromosome(size);
         for (int i = 0; i < size; ++i)
             (*chm)[i] = rand() % 4 + 'A';
         return chm;
     });
+    p.print();
+    p.crossover(0.1, 0.5);
     p.print();
 
     return 0;
