@@ -5,23 +5,21 @@
 
 using namespace std;
 
+double sqx(double x)
+{
+    return x;
+}
+
 int main()
 {
     srand(time(nullptr));
-    population p;
+    Population p;
 
-    p.generate(10, 10, [](int size) -> void* {
-        chromosome *chm = new chromosome(size);
-        for (int i = 0; i < size; ++i)
-            (*chm)[i] = rand() % 4 + 'A';
-        return chm;
-    });
-    p.set_opt([](chromosome &c) -> double { return 0; });
-
-    for (int i = 0; i < p.size(); ++i)
-        cout << p[i] << endl;
-
-    p.crossover(0.1, 0.5);
+    p.createPopulation(Population::MAX, sqx, -5.5, 6.73, 100, 20, 5);
+    for (int i = 0; i < 10; ++i)
+        p.generation(0.7, 0.0001);
+    cout << "average: " << p.average() << endl
+        << "best: " << p.best().getP() << endl;
 
     return 0;
 }

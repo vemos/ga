@@ -3,29 +3,31 @@
 
 #include <vector>
 #include <iostream>
+#include <memory.h>
 
 using namespace std;
 
-typedef unsigned char byte;
-
-class chromosome
+class Chromosome
 {
 public:
-    chromosome() { _opt = 0; }
-    chromosome(int size) { _opt = 0; _body.resize(size); }
+    Chromosome();
+    Chromosome(int length);
+    Chromosome(int *body, int length);
+    Chromosome(const Chromosome &c);
+    ~Chromosome();
 
-    double  opt() const { return _opt; }
-    void set_opt(double opt) { _opt = opt; }
-    const byte* data() const { return _body.data(); }
-    int     size() const { return _body.size(); }
-
-     byte& operator [](int index) { return _body[index]; }
-     const byte& operator [](int index) const { return _body[index]; }
+    void    mutate(float p);                    // операция мутации хромосомы
+    int     size() const { return _size; }      // длина хромосомы
+    const int* data() const { return _body; }   // данные хромосомы
+    void    print() const;                      // вывод на экран хромосомы
+    int&    operator[] (int i);                 // получение доступа к i-му гену хромосомы
+    Chromosome& operator=(const Chromosome &c);
+    double  getP() const { return _P; }         // получить значение функции оптимальности
+    void    setP(double p) { _P = p; }          // установить значение функции оптимальности
 private:
-     double _opt;            // value of the function of optimality
-     vector<byte> _body;
+    double _P;      // значение функции оптимальности
+    int _size;      // размер хромосомы
+    int* _body; 	// гены хромосомы
 };
 
-ostream& operator << (ostream& out, const chromosome &chm);
-
-#endif
+#endif // CHROMOSOME_H
