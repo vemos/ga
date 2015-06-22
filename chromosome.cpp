@@ -41,15 +41,18 @@ Chromosome::~Chromosome()
 
 void Chromosome::mutate(float p)
 {
-    int i = rand() % _size;
     if (drand() <= p)
-        _body[i] = _body[i] == 0 ? 1 : 0;
+    {
+        int n = rand() % _size;
+        for (int i = 0; i < n; ++i)
+        _body[i] = _body[i] == 1 ? 0 : 1;
+    }
 }
 
 void Chromosome::print() const
 {
     cout << _P << "\t";
-    for (int i = 0; i < _size; i++)
+    for (int i = 0; i < _size; ++i)
         cout << _body[i];
     cout << endl;
 }

@@ -59,12 +59,12 @@ void Population::createPopulation(Criterion cr, fun calc, double a, double b, in
     this->fract = fract;
     this->p_calc = calc;
     this->popSize = popSize;
-    chrom_bank.resize(popSize);
+    bank.resize(popSize);
     for (int i = 0; i < popSize; i++)
-        chrom_bank[i] = make_shared<Chromosome>(chromLen);
-    vector< shared_ptr<Chromosome> >::iterator iter = chrom_bank.begin();
+        bank[i] = make_shared<Chromosome>(chromLen);
+    vector< shared_ptr<Chromosome> >::iterator iter = bank.begin();
     // расчитать для всех хромосом значение функции оптимальности
-    while (iter != chrom_bank.end())
+    while (iter != bank.end())
     {
         funOpt(**iter);
         ++iter;
@@ -82,21 +82,21 @@ int Population::generation(float co, float m)
         throw logic_error("Популяция не была создана!");
     crossingOver(co, m);
     selection();
-    if (chrom_bank.size() == 0)
+    if (bank.size() == 0)
         throw underflow_error("Численность популяции равна нулю!");
     return ++gen;
 }
 
 Chromosome& Population::best()
 {
-    return *chrom_bank[bestIndex()];
+    return *bank[bestIndex()];
 }
 
 int Population::bestIndex()
 {
     int best = 0;
-    for (int i = 0; i < chrom_bank.size(); ++i)
-        if (comp(chrom_bank[best], chrom_bank[i]))
+    for (int i = 0; i < bank.size(); ++i)
+        if (!comp(bank[best], bank[i]))
             best = i;
     return best;
 }
@@ -114,13 +114,13 @@ double Population::binToDec(Chromosome &c)
 double Population::average() const
 {
     double res = 0;
-    vector< shared_ptr<Chromosome> >::const_iterator iter = chrom_bank.begin();
-    while (iter != chrom_bank.end())
+    vector< shared_ptr<Chromosome> >::const_iterator iter = bank.begin();
+    while (iter != bank.end())
     {
         res += iter->get()->getP();
         ++iter;
     }
-    res /= chrom_bank.size();
+    res /= bank.size();
     return res;
 }
 
@@ -141,21 +141,22 @@ void Population::funOpt(Chromosome &c)
 
 void Population::selection()
 {
-    int quarter = chrom_bank.size() / 4;
-    vector< shared_ptr<Chromosome> >::iterator iter = chrom_bank.begin();
-    sort(chrom_bank.begin(), chrom_bank.end(), comp);
+    int quarter = bank.size() / 4;
+    vector< shared_ptr<Chromosome> >::iterator iter = bank.begin();
+    sort(bank.begin(), bank.end(), comp);
     // удаляем все хромосомы с "патологиями"
-    while (iter < chrom_bank.end() && std::isnan((*iter)->getP()))
+    while (iter < bank.end() && std::isnan((*iter)->getP()))
         ++iter;
-    chrom_bank.erase(chrom_bank.begin(), iter);
+    bank.erase(bank.begin(), iter);
     // удаляем избыточные хромосомы
-    while (chrom_bank.size() > popSize)
-        chrom_bank.erase(chrom_bank.begin() + quarter + rand() % (chrom_bank.size() - quarter));
+    while (bank.size() > popSize)
+        bank.erase(bank.begin() + quarter + rand() % (bank.size() - quarter));
 }
 
 void Population::crossingOver(float co, float m)
 {
-    int i, j, indA, k, size, N = chrom_bank.size();
+    int i, j, indA, size, N = bank.size();
+    int k1, k2;
     int *buf;
     float *prob, va, vb;
     double sum, cur, cur_sum, probA;
@@ -163,12 +164,12 @@ void Population::crossingOver(float co, float m)
     vector< shared_ptr<Chromosome> > chroms;
     // отобрать хромосомы участвующие в операции скрещивания
     // отбор методом ранжирования
-    sort(chrom_bank.begin(), chrom_bank.end(), comp);
+    sort(bank.begin(), bank.end(), comp);
     va = drand() + 1.0;
     vb = 2 - va;
     sum = 0;
     prob = new float[N];
-    size = chrom_bank.front()->size();
+    size = bank.front()->size();
     buf = new int[size];
     for (i = 0; i < N; ++i)
     {
@@ -177,7 +178,7 @@ void Population::crossingOver(float co, float m)
     }
     for (i = 0; i < N; ++i)
     {
-        // генерация числа для рулетки
+        // генерация числа для ранжирования
         cur = drand() * sum;
         j = -1;	// индекс отобранной хромосомы
         cur_sum = 0;
@@ -188,7 +189,7 @@ void Population::crossingOver(float co, float m)
         if (drand() <= co)
         {
             if (a.use_count() == 0) {
-                a = chrom_bank[j];
+                a = bank[j];
                 probA = prob[j];
                 sum -= prob[j];
                 prob[j] = 0;
@@ -197,17 +198,23 @@ void Population::crossingOver(float co, float m)
             else
             {
                 // скрестить хромосомы
-                b = chrom_bank[j];
-                // выбрать точку скрещивания
-                k = rand() % (size - 2) + 1;
+                b = bank[j];
+                k1 = rand() % (size - 2) + 1;
+                do {
+                    k2 = rand() % (size - 2) + 1;
+                } while (k2 == k1);
+                if (k1 > k2)
+                    swap(k1, k2);
                 // создать первого потомка
-                memcpy(buf, a->data(), sizeof(int)* k);
-                memcpy(buf + k, b->data() + k, sizeof(int)* (size - k));
+                memcpy(buf, a->data(), sizeof(int) * k1);
+                memcpy(buf + k1, b->data() + k1, sizeof(int) * (k2 - k1));
+                memcpy(buf + k2, a->data() + k2, sizeof(int) * (size - k2));
                 chroms.push_back( make_shared<Chromosome>(buf, size) );
                 // создать второго потомка
-                memcpy(buf, b->data(), sizeof(int)* k);
-                memcpy(buf + k, a->data() + k, sizeof(int)* (size - k));
-                chroms.push_back(make_shared<Chromosome>(buf, size));
+                memcpy(buf, b->data(), sizeof(int) * k1);
+                memcpy(buf + k1, a->data() + k1, sizeof(int) * (k2 - k1));
+                memcpy(buf + k2, b->data() + k2, sizeof(int) * (size - k2));
+                chroms.push_back( make_shared<Chromosome>(buf, size) );
                 a.reset();
                 b.reset();
                 prob[indA] = probA;
@@ -218,7 +225,7 @@ void Population::crossingOver(float co, float m)
     delete[]prob;
     delete[]buf;
     mutation(chroms, m);
-    chrom_bank.insert(chrom_bank.end(), chroms.begin(), chroms.end());
+    bank.insert(bank.end(), chroms.begin(), chroms.end());
 }
 
 void Population::mutation(vector< shared_ptr<Chromosome> > &bank, float p)
@@ -235,5 +242,5 @@ void Population::mutation(vector< shared_ptr<Chromosome> > &bank, float p)
 
 Chromosome& Population::operator[](const int index) const
 {
-    return *chrom_bank[index];
+    return *bank[index];
 }

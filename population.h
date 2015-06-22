@@ -56,11 +56,11 @@ public:
     double	average() const;
     Chromosome& best();     // лучшая хромосома
     int     bestIndex();    // индекс лучшей хромосомы
-    int 	size() const { return chrom_bank.size(); }
+    int 	size() const { return bank.size(); }
     double	binToDec(Chromosome &c);
     int 	generation(float co, float m);
     int		genNumber() const { return gen; }
-    vector< shared_ptr<Chromosome> > population() const { return chrom_bank; }
+    vector< shared_ptr<Chromosome> > population() const { return bank; }
     Chromosome& operator[](const int index) const;
 
 private:
@@ -72,7 +72,7 @@ private:
     double prec;	// цена "деления" (одного шага)
     //Criterion cr;	// критерий отбора: MIN или MAX
     Comparator comp;// критерий отбора: MIN или MAX
-    vector< shared_ptr<Chromosome> > chrom_bank;
+    vector< shared_ptr<Chromosome> > bank;
     fun p_calc;// функция отбора
 
     void funOpt();
