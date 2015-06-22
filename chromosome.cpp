@@ -2,54 +2,41 @@
 #define CHROMOSOME_CPP
 
 #include <vector>
+#include <iostream>
 
-using namespace std;
+using std::cout;
+using std::endl;
+using std::ostream;
+using std::vector;
 
 
-template<typename T>
-class Chromosome
+template<typename T, typename F>
+class chromosome
 {
 public:
-    Chromosome() {}
-    Chromosome(int size);
+    chromosome() {}
+    chromosome(int size) { _body.resize(size); }
 
-    const T* data() const;
-    int length() const;
+    F       getOpt() const { return _opt; }
+    void    setOpt(F opt) { _opt = opt; }
+    const T* data() const { return _body.data(); }
+    int     size() const { return _body.size(); }
 
-     T& operator [](int index);
-     const T& operator [](int index) const;
+     T&         operator [](int index) { return _body[index]; }
+     const T&   operator [](int index) const { return _body[index]; }
 private:
-    vector<T> _data;
+     F _opt;            // value of the function of optimality
+     vector<T> _body;
 };
 
-template<typename T>
-Chromosome<T>::Chromosome(int size)
+
+template<typename T, typename F>
+ostream& operator << (ostream& out, chromosome<T, F> &chm)
 {
-    _data.resize(size);
+    for (int i = 0; i < chm.size(); ++i)
+        out << chm[i];
+    return out;
 }
 
-template<typename T>
-const T* Chromosome<T>::data() const
-{
-    return _data.data();
-}
-
-template<typename T>
-int Chromosome<T>::length() const
-{
-    return (int)_data.size();
-}
-
-template<typename T>
-T& Chromosome<T>::operator [](int index)
-{
-    return _data[index];
-}
-
-template<typename T>
-const T& Chromosome<T>::operator [](int index) const
-{
-    return _data[index];
-}
 
 #endif
